@@ -33,6 +33,7 @@ model User {
   referrals     User[]    @relation("ReferredUsers")
   subscriptions Subscription[]
   payments      Payment[]
+  clients       Client[]
   
   @@index([email])
   @@index([referrerId])
@@ -100,7 +101,7 @@ model Subscription {
   clientId    String?            @unique
   client      Client?            @relation(fields: [clientId], references: [id])
   paymentId   String?            @unique
-  payment     Payment?           @relation(fields: [paymentId], references: [id])
+  payment     Payment?           @relation(fields: [paymentId])
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   
@@ -118,7 +119,7 @@ model Payment {
   status          String   // pending, succeeded, failed, refunded
   paymentId       String?  @unique // ID платежа в ЮKassa
   subscriptionId  String?  @unique
-  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  subscription    Subscription? @relation(fields: [subscriptionId])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
