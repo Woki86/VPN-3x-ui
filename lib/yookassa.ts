@@ -1,9 +1,57 @@
-import YooKassa from '@yookassa/sdk'
+import crypto from 'crypto'
 
-export const yookassa = new YooKassa({
-  shopId: process.env.YOOKASSA_SHOP_ID,
-  secretKey: process.env.YOOKASSA_SECRET_KEY,
-})
+const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID
+const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY
+const YOOKASSA_AUTH = Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64')
+
+const YOOKASSA_BASE_URL = 'https://api.yookassa.ru/v3'
+
+interface CreatePaymentRequest {
+  amount: {
+    value: string
+    currency: string
+  }
+  capture: boolean
+  confirmation: {
+    type: string
+    return_url: string
+  }
+  description: string
+  metadata: Record<string, string>
+}
+
+interface CreatePaymentResponse {
+  id: string
+  status: string
+  amount: {
+    value: string
+    currency: string
+  }
+  confirmation?: {
+    type: string
+    confirmation_url: string
+  }
+  created_at: string
+}
+
+export async function createPayment(data: CreatePaymentRequest): Promise<CreatePaymentResponse> {
+  const response = await fetch(`${YOOKASSA_BASE_URL}/payments`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Idempotence-Key': crypto.randomUUID(),
+      'Authorization': `Basic ${YOOKASSA_AUTH}`,
+    },
+    body: JSON.stringify(data),
+  })
+
+  if (!response.ok) {
+    const error = await response.json()
+    throw new Error(error.description || 'Ошибка создания платежа')
+  }
+
+  return response.json()
+}
 
 export const TARIFFS = {
   STANDARD: {
