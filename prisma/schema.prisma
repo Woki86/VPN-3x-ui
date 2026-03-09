@@ -101,7 +101,7 @@ model Subscription {
   clientId    String?            @unique
   client      Client?            @relation(fields: [clientId], references: [id])
   paymentId   String?            @unique
-  payment     Payment?           @relation(fields: [paymentId], references: [id])
+  payment     Payment?
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   
