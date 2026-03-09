@@ -4,21 +4,22 @@
 
 ## 🚀 Стек технологий
 
-- **Frontend:** Next.js 15 (App Router, Server Components + Server Actions)
-- **Язык:** TypeScript (строгий режим)
-- **Стили:** Tailwind CSS + shadcn/ui
+- **Frontend:** Next.js 15.2 (App Router, Server Components + Server Actions)
+- **Язык:** TypeScript 5.8 (строгий режим)
+- **Стили:** Tailwind CSS 3.4 + shadcn/ui
 - **Иконки:** Lucide-react
-- **База данных:** PostgreSQL + Prisma ORM
+- **База данных:** PostgreSQL 17 + Prisma ORM 6.5
 - **Авторизация:** NextAuth.js v5 (Credentials provider)
-- **Платежи:** @yookassa/sdk
+- **Платежи:** YooKassa HTTP API
 - **QR-коды:** qrcode
 - **Валидация:** zod + react-hook-form
 - **Уведомления:** sonner
+- **Node.js:** 22 LTS
 
 ## 📋 Требования
 
-- Node.js 18+
-- PostgreSQL 14+ (или SQLite для разработки)
+- Node.js 22+
+- PostgreSQL 17+ (или SQLite для разработки)
 - 3x-ui панель с поддержкой VLESS Reality
 - Аккаунт в ЮKassa (для продакшена)
 
@@ -385,6 +386,42 @@ VPN_3x-ui/
 
 ---
 
+## 🐛 Решение проблем
+
+### Ошибка Prisma: "datasource must not use env() in provider"
+
+Убедитесь что в `prisma/schema.prisma` указано:
+
+```prisma
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+```
+
+### Ошибка Node.js версии
+
+Требуется Node.js 22+:
+
+```bash
+node -v  # должно быть v22.x
+
+# Обновление через nvm
+nvm install 22
+nvm use 22
+```
+
+### Ошибка YooKassa
+
+Проверьте что в `.env` указаны правильные данные:
+
+```env
+YOOKASSA_SHOP_ID="your_shop_id"
+YOOKASSA_SECRET_KEY="your_secret_key"
+```
+
+---
+
 ## 📝 Лицензия
 
 MIT
@@ -393,4 +430,4 @@ MIT
 
 ## 🤝 Поддержка
 
-Вопросы и предложения: создайте issue в репозитории
+Вопросы и предложения: создайте issue в репозитории GitHub

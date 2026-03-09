@@ -2,7 +2,14 @@ import crypto from 'crypto'
 
 const YOOKASSA_SHOP_ID = process.env.YOOKASSA_SHOP_ID
 const YOOKASSA_SECRET_KEY = process.env.YOOKASSA_SECRET_KEY
-const YOOKASSA_AUTH = Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64')
+
+if (!YOOKASSA_SHOP_ID || !YOOKASSA_SECRET_KEY) {
+  console.warn('⚠️ YooKassa credentials not configured. Payments will not work.')
+}
+
+const YOOKASSA_AUTH = YOOKASSA_SHOP_ID && YOOKASSA_SECRET_KEY 
+  ? Buffer.from(`${YOOKASSA_SHOP_ID}:${YOOKASSA_SECRET_KEY}`).toString('base64')
+  : ''
 
 const YOOKASSA_BASE_URL = 'https://api.yookassa.ru/v3'
 
@@ -35,6 +42,10 @@ interface CreatePaymentResponse {
 }
 
 export async function createPayment(data: CreatePaymentRequest): Promise<CreatePaymentResponse> {
+  if (!YOOKASSA_AUTH) {
+    throw new Error('YooKassa credentials not configured')
+  }
+
   const response = await fetch(`${YOOKASSA_BASE_URL}/payments`, {
     method: 'POST',
     headers: {
@@ -46,7 +57,7 @@ export async function createPayment(data: CreatePaymentRequest): Promise<CreateP
   })
 
   if (!response.ok) {
-    const error = await response.json()
+    const error = await response.json().catch(() => ({ description: 'Unknown error' }))
     throw new Error(error.description || 'Ошибка создания платежа')
   }
 
