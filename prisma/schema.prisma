@@ -59,7 +59,7 @@ model Inbound {
   id          String   @id @default(uuid())
   panelId     String
   panel       Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
-  inboundId   Int      // ID inbound в 3x-ui панели
+  inboundId   Int
   tag         String
   port        Int
   protocol    String
@@ -75,7 +75,7 @@ model Client {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   inboundId       String
   inbound         Inbound  @relation(fields: [inboundId], references: [id], onDelete: Cascade)
-  clientId        String   // UUID клиента в 3x-ui
+  clientId        String
   email           String
   flow            String   @default("xtls-rprx-vision")
   subscriptionId  String?
@@ -116,8 +116,8 @@ model Payment {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   amount          Decimal
   currency        String   @default("RUB")
-  status          String   // pending, succeeded, failed, refunded
-  paymentId       String?  @unique // ID платежа в ЮKassa
+  status          String
+  paymentId       String?  @unique
   subscriptionId  String?  @unique
   subscription    Subscription? @relation(fields: [subscriptionId])
   createdAt       DateTime @default(now())
@@ -133,7 +133,7 @@ model PromoCode {
   code        String   @unique
   bonusDays   Int      @default(10)
   isActive    Boolean  @default(true)
-  maxUses     Int?     // null = безлимитный
+  maxUses     Int?
   usedCount   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
