@@ -101,7 +101,7 @@ model Subscription {
   clientId    String?            @unique
   client      Client?            @relation(fields: [clientId], references: [id])
   paymentId   String?            @unique
-  payment     Payment?           @relation(fields: [paymentId])
+  payment     Payment?           @relation(fields: [paymentId], references: [id])
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   
@@ -119,7 +119,7 @@ model Payment {
   status          String
   paymentId       String?  @unique
   subscriptionId  String?  @unique
-  subscription    Subscription? @relation(fields: [subscriptionId])
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   
