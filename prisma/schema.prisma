@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("DB_PROVIDER")
+  url      = env("DATABASE_URL")
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  PENDING
+  CANCELLED
+}
+
+enum TariffType {
+  STANDARD
+  VIP
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  name          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  bonusDays     Int       @default(0)
+  promoUsed     Boolean   @default(false)
+  referrerId    String?
+  referredBy    User?     @relation("ReferredUsers", fields: [referrerId], references: [id])
+  referrals     User[]    @relation("ReferredUsers")
+  subscriptions Subscription[]
+  payments      Payment[]
+  
+  @@index([email])
+  @@index([referrerId])
+}
+
+model Panel {
+  id          String   @id @default(uuid())
+  name        String
+  url         String
+  username    String
+  password    String
+  isVip       Boolean  @default(false)
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  inbounds    Inbound[]
+  
+  @@index([isVip])
+  @@index([isActive])
+}
+
+model Inbound {
+  id          String   @id @default(uuid())
+  panelId     String
+  panel       Panel    @relation(fields: [panelId], references: [id], onDelete: Cascade)
+  inboundId   Int      // ID inbound в 3x-ui панели
+  tag         String
+  port        Int
+  protocol    String
+  clients     Client[]
+  
+  @@unique([panelId, inboundId])
+  @@index([panelId])
+}
+
+model Client {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inboundId       String
+  inbound         Inbound  @relation(fields: [inboundId], references: [id], onDelete: Cascade)
+  clientId        String   // UUID клиента в 3x-ui
+  email           String
+  flow            String   @default("xtls-rprx-vision")
+  subscriptionId  String?
+  subscription    Subscription?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([userId, inboundId])
+  @@index([userId])
+  @@index([clientId])
+}
+
+model Subscription {
+  id          String             @id @default(uuid())
+  userId      String
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tariffType  TariffType
+  months      Int
+  startDate   DateTime           @default(now())
+  endDate     DateTime
+  status      SubscriptionStatus @default(PENDING)
+  bonusDays   Int                @default(0)
+  clientId    String?            @unique
+  client      Client?            @relation(fields: [clientId], references: [id])
+  paymentId   String?            @unique
+  payment     Payment?           @relation(fields: [paymentId], references: [id])
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  @@index([userId])
+  @@index([status])
+  @@index([endDate])
+}
+
+model Payment {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Decimal
+  currency        String   @default("RUB")
+  status          String   // pending, succeeded, failed, refunded
+  paymentId       String?  @unique // ID платежа в ЮKassa
+  subscriptionId  String?  @unique
+  subscription    Subscription? @relation(fields: [subscriptionId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([userId])
+  @@index([paymentId])
+  @@index([status])
+}
+
+model PromoCode {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  bonusDays   Int      @default(10)
+  isActive    Boolean  @default(true)
+  maxUses     Int?     // null = безлимитный
+  usedCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([code])
+  @@index([isActive])
+}
+
+model ReferralBonus {
+  id          String   @id @default(uuid())
+  referrerId  String
+  referredId  String
+  daysAdded   Int      @default(12)
+  createdAt   DateTime @default(now())
+  
+  @@unique([referrerId, referredId])
+  @@index([referrerId])
+  @@index([referredId])
+}
